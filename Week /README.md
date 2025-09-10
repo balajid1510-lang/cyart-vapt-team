@@ -92,8 +92,8 @@ The labs were performed in a **controlled environment** with the following setup
 ---
 
 ## 📂 Repository Structure
-Week_2/
-├── Week/Vulnerability_Scanning/
+Week/
+├── Week2/Vulnerability_Scanning/
 │ ├── nmap_report.txt
 │ ├── openvas_report.pdf
 │ └── scan_tables.xlsx
