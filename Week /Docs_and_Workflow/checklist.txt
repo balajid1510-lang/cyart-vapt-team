@@ -1,1 +1,86 @@
+📋 VAPT Checklist (Docs and Workflow)
+1. Environment Setup
+
+ Ensure Kali Linux (attacker) and Metasploitable2 (target) are running in Bridge Adapter mode.
+
+ Verify network connectivity (ping <target IP>).
+
+ Update Kali tools (sudo apt update && sudo apt upgrade).
+
+2. Reconnaissance Phase
+
+ Perform WHOIS lookup and document findings.
+
+ Enumerate DNS records (A, MX, TXT).
+
+ Run Sublist3r for subdomain discovery.
+
+ Use Shodan/Maltego for exposed services.
+
+ Perform Google dorking for sensitive files (robots.txt, admin portals).
+
+ Log all recon activities in Reconnaissance/recon_logs.md.
+
+ Save identified subdomains in Reconnaissance/osint_checks.md.
+
+3. Vulnerability Scanning Phase
+
+ Run Nmap service/version scan (nmap -A <target>).
+
+ Save raw Nmap output in Vulnerability_Scanning/nmap_report.txt.
+
+ Generate OpenVAS scan report and save as openvas_report.pdf.
+
+ Run Nikto for web scanning and save results.
+
+ Create vulnerability scan table (scan_tables.xlsx) with CVSS scores.
+
+ Cross-check findings against CVE databases (Exploit-DB, NVD).
+
+4. Exploitation Phase
+
+ Select 2–3 high-priority vulnerabilities (Critical/High).
+
+ Use Metasploit (e.g., tomcat_mgr_login) for exploitation.
+
+ Run sqlmap on DVWA / target web app.
+
+ Record all successful and failed exploits in Exploitation/exploit_results.txt.
+
+ Validate exploits using Exploit-DB and write summaries in Exploitation/validation_summary.md.
+
+5. Post-Exploitation Phase
+
+ Attempt privilege escalation (e.g., bypassuac on Windows, kernel exploits on Linux).
+
+ Dump hashes / credentials where possible.
+
+ Collect artifacts (config files, logs) and record in Post-Exploitation/collected_evidence.md.
+
+ Hash collected evidence with sha256sum and log in Post-Exploitation/privilege_escalation_logs.txt.
+
+6. Reporting Phase
+
+ Draft PTES Report (200+ words) in Docs_and_Workflow/PTES_report.pdf.
+
+ Write a non-technical summary (100 words) in Docs_and_Workflow/summary.md.
+
+ Draft developer escalation email in Docs_and_Workflow/summary.md (include PoC and CVE reference).
+
+ Store all screenshots in Docs_and_Workflow/screenshots/.
+
+7. Repository Management
+
+ Add .gitignore file (ignore large outputs, secrets, swap files).
+
+ Update README.md with project description, tools used, and workflow.
+
+ Push all documents, logs, and reports to GitHub.
+
+ Double-check folder structure before submission.
+
+✅ Final Note:
+This checklist ensures every phase of the VAPT cycle is covered, from recon to reporting. Each task should leave behind a documented file in the correct repo folder for traceability.
+
+
 

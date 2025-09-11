@@ -1,1 +1,164 @@
+1. Cover Page
 
+Title: Penetration Testing Report – Week 2 VAPT Lab
+Author: Balaji D (VAPT Analyst)
+Date: September 2025
+Target: Metasploitable2 VM (192.168.29.155)
+Attacker: Kali Linux VM (Bridge Adapter Mode)
+
+2. Executive Summary
+
+This penetration test was conducted against a Metasploitable2 virtual machine in a controlled lab environment, using Kali Linux as the attacker machine. Both systems were configured in bridge mode, simulating a real-world scenario where the attacker and target are on the same local network.
+
+The objective was to evaluate the target’s security posture using the PTES framework. During the assessment, several critical vulnerabilities were identified, including the vsftpd 2.3.4 backdoor (CVE-2011-2523), Apache Tomcat Manager RCE (CVE-2009-3548), and Samba 3.0.20 remote execution flaw (CVE-2007-2447). Exploitation attempts were successful, leading to remote shell access, SQL injection, and privilege escalation opportunities.
+
+If left unpatched, these vulnerabilities can allow remote attackers to compromise the system completely, steal sensitive data, and pivot further into the network. Immediate remediation is recommended by patching outdated services, restricting access to critical management interfaces, and implementing layered defenses such as firewalls and IDS/IPS solutions.
+
+3. Scope
+
+In-Scope System: Metasploitable2 VM (192.168.29.155)
+
+Out-of-Scope Systems: Any other machines on the same subnet.
+
+Tools Used:
+
+Recon: Nmap, Shodan, Maltego, Sublist3r
+
+Vulnerability Scanning: Nmap (service detection), OpenVAS, Nikto
+
+Exploitation: Metasploit, sqlmap, Burp Suite
+
+Post-Exploitation: Meterpreter, Volatility, sha256sum
+
+4. Methodology
+
+Following the PTES phases:
+
+Pre-Engagement: Defined target as Metasploitable2. Attacker machine: Kali Linux in bridge mode.
+
+Intelligence Gathering: OSINT with Shodan and Maltego revealed common services like SSH, FTP, HTTP, and Samba. WHOIS and DNS recon provided no external exposure since the target was a lab VM.
+
+Threat Modeling: Attack surface identified: FTP (21), SSH (22), HTTP (80), MySQL (3306), Tomcat (8080), Samba (445).
+
+Vulnerability Analysis:
+
+Nmap scans detected outdated services.
+
+OpenVAS confirmed multiple critical CVEs.
+
+Nikto revealed web vulnerabilities (directory traversal, outdated Apache version).
+
+Exploitation:
+
+vsftpd 2.3.4 backdoor → remote root shell.
+
+Tomcat Manager login → deployed WAR → RCE via Metasploit.
+
+SQL injection on DVWA → dumped users and hashes using sqlmap.
+
+Post-Exploitation:
+
+Privilege escalation attempted with exploit/windows/local/bypassuac.
+
+Collected evidence: /etc/passwd, MySQL config files, user password hashes.
+
+All files were hashed with sha256sum for integrity.
+
+Reporting: This document provides technical findings, remediation steps, and executive briefing.
+
+5. Findings
+Finding 1 – vsftpd 2.3.4 Backdoor
+
+CVE: CVE-2011-2523
+
+CVSS v4.0 Score: 10.0 (Critical)
+
+Impact: Remote unauthenticated attacker can spawn a root shell by connecting to port 21 and sending a malicious username.
+
+Evidence:
+
+nmap -sV 192.168.29.155
+PORT   STATE SERVICE VERSION
+21/tcp open  ftp     vsftpd 2.3.4
+
+
+Exploited with Metasploit → root shell obtained.
+
+Remediation: Remove vulnerable vsftpd version, replace with secure FTP solution.
+
+Finding 2 – Apache Tomcat Manager RCE
+
+CVE: CVE-2009-3548
+
+CVSS v4.0 Score: 9.8 (Critical)
+
+Impact: Weak credentials on the Tomcat Manager web interface allowed deployment of a malicious WAR file, leading to remote code execution.
+
+Evidence:
+
+use exploit/multi/http/tomcat_mgr_login
+set RHOST 192.168.29.155
+set RPORT 8080
+exploit
+
+
+Payload delivered → Java reverse shell.
+
+Remediation: Restrict access to Tomcat Manager, enforce strong authentication, and upgrade to the latest version.
+
+Finding 3 – Samba 3.0.20 Remote Code Execution
+
+CVE: CVE-2007-2447
+
+CVSS v4.0 Score: 9.3 (Critical)
+
+Impact: Remote attackers can gain system-level access through crafted username inputs over port 445.
+
+Evidence:
+
+nmap -p445 --script smb-vuln* 192.168.29.155
+
+
+Confirmed vulnerable version.
+
+Remediation: Patch Samba to latest version and restrict SMB exposure.
+
+Finding 4 – Apache 2.2.8 Directory Traversal
+
+CVE: CVE-2021-41773
+
+CVSS v4.0 Score: 8.8 (High)
+
+Impact: Attackers can read arbitrary files outside the web root.
+
+Evidence: Nikto confirmed /icons/ directory traversal.
+
+Remediation: Upgrade Apache HTTP Server, disable directory listing.
+
+6. Risk Rating Summary
+Vulnerability	CVE	CVSS v4.0	Risk Level	Status
+vsftpd 2.3.4 Backdoor	CVE-2011-2523	10.0	Critical	Exploited
+Apache Tomcat Manager RCE	CVE-2009-3548	9.8	Critical	Exploited
+Samba 3.0.20 RCE	CVE-2007-2447	9.3	Critical	Identified
+Apache 2.2.8 Traversal	CVE-2021-41773	8.8	High	Identified
+7. Recommendations
+
+Patch Management: Immediately upgrade or disable vulnerable versions of vsftpd, Samba, Apache, and Tomcat.
+
+Service Hardening: Disable unused services like Telnet, rlogin, and RPC.
+
+Access Controls: Restrict administrative panels (Tomcat Manager, phpMyAdmin) to internal networks only.
+
+Monitoring: Deploy Snort/Suricata IDS and centralized logging with ELK/Graylog.
+
+Network Segmentation: Place critical services in isolated VLANs with firewall rules.
+
+8. Appendices
+
+Appendix A: Full Nmap scan results (nmap_report.txt)
+
+Appendix B: OpenVAS detailed findings (OpenVAS_report.pdf)
+
+Appendix C: Exploitation logs (exploit_results.txt)
+
+Appendix D: Evidence with SHA256 integrity (collected_evidence.md)
