@@ -1,1 +1,88 @@
+PLANNING & AUTHORIZATION
 
+Obtain written authorization and scope from the client; record dates, IP ranges, allowed tests, excluded systems, and communication contacts.
+
+Confirm test window and escalation/contact procedure for accidental service disruption.
+
+Note legal constraints and data handling rules; ensure data retention policy for evidence.
+
+ENVIRONMENT PREPARATION
+4) Snapshot VMs or take backups of lab machines before testing.
+5) Ensure Kali and tools are updated: apt update && apt upgrade.
+6) Configure networking (Bridged/Host-Only/NAT as required) and verify connectivity to targets (ping <TARGET_IP>).
+7) Open a Google Doc for live notes and a folder structure locally: project/, evidence/, reports/, scans/.
+
+RECONNAISSANCE
+8) Passive recon: gather hostnames, subdomains, public footprints, and service banners.
+9) Active recon: nmap -sC -sV -p- -oA scans/<target> <TARGET_IP>
+10) Save nmap output and screenshots into evidence/.
+
+SERVICE ENUMERATION
+11) Identify web apps and ports from nmap; note HTTP/HTTPS ports and app versions.
+12) For web apps, browse manually (use Firefox) and capture pages/screenshots of forms, parameters, and behavior.
+13) Use gobuster/dirb/ffuf for directories: gobuster dir -u http://<TARGET_IP>:<PORT>/ -w /usr/share/wordlists/dirb/common.txt -o evidence/gobuster.txt
+
+VULNERABILITY SCANNING (OpenVAS/GVM)
+14) Ensure OpenVAS feed is synced: greenbone-nvt-sync (or greenbone-feed-sync as applicable).
+15) Create/Open a fresh scan task in GVM for the target IP; run authenticated scans if credentials allowed.
+16) Export scan report (PDF/CSV) and save to evidence/.
+17) Log OpenVAS findings into your table (timestamp, target, vulnerability, PTES phase).
+
+EXPLOITATION (DVWA with sqlmap)
+18) Confirm DVWA is accessible; set security level to low/medium as needed for lab.
+19) Discover injectable parameters by manual testing (single quotes, error messages) and by Burp Suite proxy.
+20) Run sqlmap example: sqlmap -u "http://<TARGET_IP>/vulnerable.php?id=1" --batch --dbs -o --threads=4 --random-agent
+21) If you extract data: document commands, output, and database/table names; save sqlmap outputs under evidence/.
+22) Follow TryHackMe walkthroughs if used — cite them in notes.
+
+POST-EXPLOITATION & PERSISTENCE (if in-scope)
+23) If a successful exploit yields a shell, run safe enumeration: uname -a, id, whoami, ps aux, netstat -tunp.
+24) Collect artifacts: download interesting files (meterpreter > download), hash them: sha256sum /path/to/file
+25) Avoid creating persistent backdoors unless explicitly authorized; record any persistence attempts and obtain re-authorization.
+
+METASPLOIT WORKFLOW (if used)
+26) Start msfconsole and document exact commands: use exploit/..., set RHOSTS, set LHOST 192.168.29.155, set PAYLOAD ..., exploit
+27) Save console output: script -c "msfconsole" msf_output.txt or copy msfconsole logs to evidence/.
+28) Validate sessions: session -l, sysinfo, getuid; save outputs.
+
+EVIDENCE & ARTIFACTS
+29) For each artifact, record: filename, description, collected by, collection date/time, SHA256 hash.
+30) Collect network evidence: sudo tcpdump -i <iface> host <TARGET_IP> and port <PORT> -w evidence/<name>.pcap
+31) Capture screenshots: msfconsole showing session open, Burp requests with injection, sqlmap outputs, OpenVAS report snippets.
+32) Organize evidence/ folder with clear filenames and a README index explaining contents.
+
+VALIDATION & REPRODUCTION
+33) Re-run exploit verification steps to reproduce findings; note exact timestamps and commands.
+34) Cross-check findings with public CVE/Exploit-DB entries and cite PoCs used.
+35) For SQLi, validate impact: listing DBs, dumping a sample table, but avoid exfiltrating sensitive production data.
+
+RISK ASSESSMENT & PRIORITIZATION
+36) Classify vulnerabilities by risk (Critical/High/Medium/Low), CVSS if available, and business impact.
+37) Provide remediation recommendations (patch, config change, input validation, WAF rules).
+
+REPORTING (Google Docs)
+38) Create executive summary, scope, methodology, findings, screenshots, evidence references, and remediation plan.
+39) Include timeline of actions, tools used, and commands (redact sensitive credentials).
+40) Append exploit log CSV and evidence index; attach OpenVAS PDF/CSV.
+41) Peer-review the report and check for accidental disclosure of secrets before final delivery.
+
+CLEANUP & RESTORATION
+42) Close any shells and stop listeners: sessions -K (metasploit) or kill related processes.
+43) Remove uploaded artifacts from target if authorized (and log removal actions).
+44) Restore snapshots if testing on cloned systems; inform stakeholder of cleanup.
+
+POST-TEST FOLLOW-UP
+45) Deliver report and schedule a debrief; include remediation verification plan and retest window.
+46) Save a final archive (zip) of evidence and reports in a secure location and note retention period.
+
+SECURITY & ETHICS
+47) Maintain confidentiality of data; encrypt archives if storing externally.
+48) Never test out-of-scope targets; stop immediately on signs of production impact and notify contacts.
+
+COMMON COMMANDS (examples)
+49) nmap: nmap -sC -sV -p- -oA scans/target 192.168.1.200
+50) sqlmap: sqlmap -u "http://192.168.1.200/vulnerable.php?id=1
+" --batch --dbs
+51) OpenVAS sync: sudo greenbone-nvt-sync
+52) tcpdump: sudo tcpdump -n -i eth0 host 192.168.1.200 and tcp port 80 -w evidence/target.pcap
+53) sha256: sha256sum /home/kali/Downloads/file
